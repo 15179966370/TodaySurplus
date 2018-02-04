@@ -1,0 +1,10 @@
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\bin\Release\今日剩余.exe
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\bin\Release\今日剩余.pdb
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.今日剩余.resources
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.Properties.Resources.resources
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.csproj.GenerateResource.Cache
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.exe
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.pdb
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\bin\Release\MetroFramework.dll
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.Set.resources
+G:\Programing\C#\Test\今日剩余\今日剩余\今日剩余\obj\Release\今日剩余.csprojResolveAssemblyReference.cache
