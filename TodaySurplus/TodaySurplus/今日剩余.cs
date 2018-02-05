@@ -45,15 +45,35 @@ namespace 今日剩余
         public string hex4 = "#EA0000";
         public int timeBar = 2;
         public int setHour = 23;
-        public int setMin = 50;
+        public int setMin  = 50;
 
-        private string pathFile = Application.StartupPath + @"\TodaySurplus.ini";
+        //应用配置文件路径
+        private string pathFile   = Application.StartupPath + @"\TodaySurplus.ini";
+        //待停止进程文件路径
+        private string pathFilePs = Application.StartupPath + @"\KillProcess.txt";
+        //新版本保存路径
+        private string pathNewAPP = Application.StartupPath;
+        //网络终端读取到的配置文件保存的路径
+        private string pathWebConfig = Application.StartupPath + @"\WebConfig.ini";
 
-        private static string[] processArray = new string[] { "QPMgrUpdate", "2345PicMiniPage", "QQPMSRV", "setup_clvupdsp", "Tencentdl", "HaoZipMiniPage", "knatsvc" };
+        //网络终端 ---简书
+        private static string contentUrl = @"https://www.jianshu.com/p/2b62eb43308a";
+
+        //新版本下载地址
+        private static string newVersionUrl = null;
+
+
+        string[] PsArray = {null }; //将ReadFilePs()中读取到的需要停止的进程保存在这个数组里面
+
+        int min30count = 0;
 
         #endregion 变量声明
 
+        //实例化时间类
         private System.DateTime CurrentTime = new System.DateTime();
+
+        //实例化一个网络下载类
+        NetWork netWork = new NetWork();
 
         #region 窗体吸附
 
@@ -79,6 +99,7 @@ namespace 今日剩余
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            #region 读取配置文件是否存在
             try
             {
                 if (!File.Exists(pathFile))
@@ -87,15 +108,15 @@ namespace 今日剩余
                     FileInfo file = new FileInfo(pathFile);//没有则创建，有则覆盖
                     StreamWriter sw = file.CreateText();
 
-                    #region 初始文件配置
+                    #region 初始化应用文件配置
 
                     sw.WriteLine("\"今日剩余\"配置文件(请勿删除，否则原有数据将丢失)\n");
                     sw.WriteLine("______________________________________________\r\n");
                     sw.WriteLine(" ================颜色配置区域================");
-                    sw.WriteLine("‖     Hex_1_" + "#1CFF1C" + "_1_Hex" + "\r\n" +
-                                 "‖     Hex_2_" + "#9AFF02" + "_2_Hex" + "\r\n" +
-                                 "‖     Hex_3_" + "#FF5000" + "_3_Hex" + "\r\n" +
-                                 "‖     Hex_4_" + "#EA0000" + "_4_Hex");
+                    sw.WriteLine("‖     [Hex_1]" + "#1CFF1C" + "[1_Hex]" + "\r\n" +
+                                 "‖     [Hex_2]" + "#9AFF02" + "[2_Hex]" + "\r\n" +
+                                 "‖     [Hex_3]" + "#FF5000" + "[3_Hex]" + "\r\n" +
+                                 "‖     [Hex_4]" + "#EA0000" + "[4_Hex]");
                     sw.WriteLine(" ================颜色配置区域================\r\n");
 
                     sw.WriteLine(" ================其他配置====================");
@@ -105,20 +126,50 @@ namespace 今日剩余
                     sw.WriteLine(" ================其他配置====================\r\n");
                     sw.WriteLine("\r\n\r\n\r\n\r\n\r\n\r\nAuthor:MrWEI\r\nQQ:1627364392\r\n");
 
-                    #endregion 初始文件配置
+                    #endregion 初始化应用文件配置
 
                     sw.Close();
                     MessageBox.Show("◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆本软件是一个时间提示助手◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n\n☞根据您今日剩余的时间,显示条会有不同的颜色和长度.\n☞在屏幕上左右拖动并释放时间条，可以让其停靠在屏幕左边或者右边.\n☞具有定时关机功能，在晚上23:45会提醒您即将关机，请你保存好您所做的工作.\n☞在23:50将会强制关机，且不会有任何提示!\n☞在23:50至03:00这段时间内将无法开机(此功能是为了保证您的睡眠).\n☞右键双击时间条即可取消开机自启，重新开启只需手动重启软件即可.\n☞右键单击时间条可再次显示帮助信息.\n\n☞Made By MrWEI...✍\n☞QQ:1627364392...✍\n\n------------------------------------→谢谢使用←------------------------------------", "欢迎使用「今日剩余」-------→Made By MWEI");
                 }
                 else
                 {
-                    ReadFile();//读取配置文件
+                    ReadFile();//读取应用配置文件
+                }
+
+                if (!File.Exists(pathFilePs))
+                {
+                    FileInfo filePs = new FileInfo(pathFilePs);
+                    StreamWriter swPs = filePs.CreateText();
+
+                    #region 初始化Ps配置文件
+
+                    swPs.WriteLine("请在此文件内添加你需要结束掉的弹窗广告或者应用程序\r\n");
+                    swPs.WriteLine("(-------------请注意按下列格式进行添加-------------)\r\n");
+                    swPs.WriteLine("请勿随意改动本文件的其他部分，否则将无法清除预期应用程序\r\n\r\n");
+                    swPs.WriteLine("本次修改将在下次程序启动时生效\r\n\r\n");
+                    swPs.WriteLine("Example:\r\n");
+                    swPs.WriteLine("[psStart]ApplicationName1|ApplicationName2|ApplicationName3[psEnd]");
+                    swPs.WriteLine("(不用加.exe后缀名)\r\n\r\n\r\n");
+
+                    swPs.WriteLine("[Add From Here]\r\n\r\n");
+                    swPs.WriteLine("[psStart][psEnd]\r\n");
+                    swPs.WriteLine("\r\n[Add End of Here]\r\n");
+                    swPs.WriteLine("\r\n\r\n\r\n\r\n\r\n\r\nAuthor:MrWEI\r\nQQ:1627364392\r\n");
+
+                    #endregion
+
+                    swPs.Close();
+                }
+                else
+                {
+                    ReadFilePs(pathFilePs);//读取所有要停止的进程
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Form_Load出错！\n出错原因：\n" + ex.Message);
-            }
+            } 
+            #endregion
 
             #region 时间条位置及形状设置
 
@@ -283,7 +334,7 @@ namespace 今日剩余
                 prompt = false;
                 MessageBox.Show("☞还有5min将强制关机☜\n☞请保存当前所做的工作☜\n☞否则数据可能会丢失哦！☜", "☞☾温馨提示☽☜");
             }
-            else if (CurrentTime.Hour == setHour && CurrentTime.Minute >= setMin || CurrentTime.Hour <= 3)
+            else if (CurrentTime.Hour == setHour && CurrentTime.Minute >= setMin || CurrentTime.Hour <= 3)//---------------------------------
             {
                 IntPtr hLib = LoadLibrary("ntdll.dll");
                 RtlAdjustPrivilege rtla = (RtlAdjustPrivilege)Invoke("RtlAdjustPrivilege", typeof(RtlAdjustPrivilege), hLib);
@@ -296,12 +347,37 @@ namespace 今日剩余
 
             #endregion 提示和强制关机部分
 
-            KillProcess(processArray);//进程清理，主要是为了处理掉某些流氓哥哥的弹窗
+            KillProcess(PsArray);//进程清理，主要是为了处理掉某些流氓哥哥的弹窗
 
             ClearMemory();//内存优化 10M占用优化到了500k
         }
 
         #endregion 500ms定时程序
+
+        #region 1min定时程序
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            bool timeOut = false;
+
+            if (min30count >= 30 && !timeOut)
+            {
+                min30count = 0;
+                timeOut = true;
+
+                //将网络终端的配置记录到本地
+                netWork.RecordWebConfig(contentUrl, pathWebConfig);
+            }
+            else
+                min30count += 1;
+
+            //下载新版 今日剩余
+            if (timeOut)
+            {
+                netWork.HttpDownload(newVersionUrl, pathNewAPP, "今日剩余V2.0");
+            }
+                
+        } 
+        #endregion
 
         #region 属性设置弹窗
 
@@ -318,7 +394,7 @@ namespace 今日剩余
 
         #endregion 属性设置弹窗
 
-        #region 读取配置文件
+        #region 读取应用配置文件
 
         public void ReadFile()
         {
@@ -327,10 +403,10 @@ namespace 今日剩余
             string line = sr.ReadToEnd();
             try
             {
-                string[] sArrayHex_1 = line.Split(new string[] { "Hex_1_", "_1_Hex" }, StringSplitOptions.RemoveEmptyEntries);
-                string[] sArrayHex_2 = line.Split(new string[] { "Hex_2_", "_2_Hex" }, StringSplitOptions.RemoveEmptyEntries);
-                string[] sArrayHex_3 = line.Split(new string[] { "Hex_3_", "_3_Hex" }, StringSplitOptions.RemoveEmptyEntries);
-                string[] sArrayHex_4 = line.Split(new string[] { "Hex_4_", "_4_Hex" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] sArrayHex_1 = line.Split(new string[] { "[Hex_1]", "[1_Hex]" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] sArrayHex_2 = line.Split(new string[] { "[Hex_2]", "[2_Hex]" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] sArrayHex_3 = line.Split(new string[] { "[Hex_3]", "[3_Hex]" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] sArrayHex_4 = line.Split(new string[] { "[Hex_4]", "[4_Hex]" }, StringSplitOptions.RemoveEmptyEntries);
 
                 string[] sArrayTimeBar = line.Split(new string[] { "timeBarThicknessNL_", "_timeBarThicknessNL" }, StringSplitOptions.RemoveEmptyEntries);
                 string[] sArraySetHour = line.Split(new string[] { "setHour_", "_setHour" }, StringSplitOptions.RemoveEmptyEntries);
@@ -349,9 +425,83 @@ namespace 今日剩余
             {
                 MessageBox.Show("配置文件读取失败，错误原因:" + ex.ToString(), "文件错误");
             }
+            finally
+            {
+                sr.Close();
+                fs.Close();
+            }
         }
 
-        #endregion 读取配置文件
+        #endregion 读取应用配置文件
+
+        #region 读取要停止的进程
+        /// <summary>
+        /// 读取要停止的进程
+        /// </summary>
+        /// <param name="path"></param>
+        public void ReadFilePs(string path)
+        {
+            FileStream fsPs = new FileStream(path, FileMode.Open, FileAccess.Read);
+            StreamReader srPs = new StreamReader(fsPs);
+            try
+            {
+                string line = srPs.ReadToEnd();
+
+                //校验文件是否丢失数据
+                CheckFileLoss(path, "KillProcess.txt", new string[] { "[Add From Here]", "[Add End of Here]", "[psStart]", "[psEnd]" });
+                //获取相应内容
+                string[] allProcess = line.Split(new string[] { "[Add From Here]", "[Add End of Here]" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] process = allProcess[1].Split(new string[] { "[psStart]", "[psEnd]" }, StringSplitOptions.RemoveEmptyEntries);
+                if(allProcess[1].Contains(".exe"))
+                    MessageBox.Show("检查到你在KillProcess.txt文件中添加了想要结束的进程，但进程名不能包含.exe，请找到文件后去除.exe后缀名，否则此部分功能将无法生效","KillProcess.txt Error");
+                else
+                    PsArray = process[1].Split('|');
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("KillProcess文件读取失败，错误原因:" + ex.ToString(), "文件错误");
+            }
+            finally
+            {
+                srPs.Close();
+                fsPs.Close();
+            }
+        }
+        #endregion
+
+        #region 校验配置文件是否丢失数据
+        /// <summary>
+        /// 校验配置文件是否丢失数据
+        /// </summary>
+        /// <param name="path">文件路径</param>
+        /// <param name="filename">文件名称</param>
+        /// <param name="contentArray">需要校验的字符串数组</param>
+        private void CheckFileLoss(string path, string filename, string[] contentArray)
+        {
+            FileStream fsCF = new FileStream(path, FileMode.Open, FileAccess.Read);
+            StreamReader srCF = new StreamReader(fsCF);
+            try
+            {
+                string line = srCF.ReadToEnd();
+                foreach (string item in contentArray)
+                {
+                    if (!(line.Contains(item)))
+                    {
+                        MessageBox.Show(filename + "文件已被破坏," + item + " 标识丢失，请重新添加或将其删除后重新启动 “今日剩余.exe”，" + filename + "将会重新生成", filename + "Error");
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("错误详情："+"\r\n" + ex.Message,"校验文件时出错");
+            }
+            finally
+            {
+                fsCF.Close();
+                srCF.Close();
+            }
+        } 
+        #endregion
 
         #region 进程截杀，去掉讨厌的弹窗
 
@@ -391,5 +541,7 @@ namespace 今日剩余
         }
 
         #endregion 内存回收
+
+
     }
 }

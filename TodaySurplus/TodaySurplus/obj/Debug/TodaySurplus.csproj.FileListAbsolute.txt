@@ -18,3 +18,4 @@ G:\Programing\C#\Test\TodaySurplus\TodaySurplus\TodaySurplus\obj\Debug\今日剩
 G:\Programing\C#\Test\TodaySurplus\TodaySurplus\TodaySurplus\obj\Debug\TodaySurplus.csproj.CoreCompileInputs.cache
 G:\Programing\C#\Test\TodaySurplus\TodaySurplus\TodaySurplus\obj\Debug\今日剩余.exe
 G:\Programing\C#\Test\TodaySurplus\TodaySurplus\TodaySurplus\obj\Debug\今日剩余.pdb
+G:\Programing\C#\Test\TodaySurplus\TodaySurplus\TodaySurplus\obj\Debug\TodaySurplus.csprojResolveAssemblyReference.cache
